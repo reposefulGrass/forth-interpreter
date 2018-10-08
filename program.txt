@@ -1,0 +1,29 @@
+
+." Please enter your height in inches: " number?
+." Now enter your weight in pounds: " number?
+
+        /* ==== Calculate BMI ==== */
+        
+/* BMI = (weight * 703) / (height * height) */
+
+703 * swap dup * /
+
+        /* ==== Print BMI ==== */
+
+nl nl ." ================================ " nl
+
+dup ." Your bmi is: " . nl 
+
+        /* ==== Print Weight Category ==== */
+
+= LOW 19  = MID 25  = HIGH 30
+        
+dup @ LOW < if ." This is considered underweight. " then
+
+dup dup @ LOW > swap @ MID < & if ." This is normal weight. " then
+
+dup dup @ MID > swap @ HIGH < & if ." This is considered overweight. " then
+
+dup @ HIGH > if ." This is considered obese " then
+
+nl ." ================================ " nl nl
