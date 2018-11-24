@@ -1,4 +1,3 @@
-
 # ==============================================================
 # forth.asm - A basic forth interpreter in MIPS asm.
 #
@@ -19,24 +18,24 @@ stack:
 	
 prompt_filename:
 	.asciiz		"Name of the file to interpret | "
-filename:		# File to parse
+filename:		        
 	.space		100
 	
 	
-program:			# Holds the entire file to parse
+program:		        # Holds the entire file to parse
 	.space		1000
-program_length:		# Length of the program to parse (NOTE: Should be equal to the value of `program`)
+program_length:	        # Length of the program to parse (NOTE: Should be equal to the value of `program`)
 	.word		1000
-program_cursor:		# Pointer to the address of `program`
-					# used to iterate through `program` like a cursor.
+program_cursor:	        # Pointer to the address of `program`
+				        # used to iterate through `program` like a cursor.
 	.word		0
 	
-	
-curr_token:		# Holds the current token that has just been parsed
+	    
+curr_token:		        # Holds the current token that has just been parsed
 	.space		64
-curr_token_len:
+curr_token_len:         # length of curr_token, MUST BE <= length(curr_token)
 	.word		64
-curr_token_index:		# Index to add characters to the curr_token
+curr_token_index:       # Index to add characters to the curr_token
 	.word		0
 	
 current_temp_variable:	# Holds a hashcode of the variable name that is being parsed. 
@@ -53,10 +52,10 @@ keyword_variable_set:	# Flag set to create a variable
 	.word		0
 keyword_variable_get:	# Flag set to get the value of a variable
 	.word		0
-keyword_disregard:	# Flag set to discard tokens (used by if statement)
+keyword_disregard:	    # Flag set to discard tokens (used by if statement)
 	.word		0
 keyword_comment:		# Flag that tells connect_keywords to disregard andthing
-			# inbetween the two comment operators (/* */)
+			            # inbetween the two comment operators (/* */)
 	.word		0
 keyword_print_string:	# Flag that tells connect_keywords that it is printing a string
 	.word		0
@@ -79,21 +78,21 @@ error_msg_no_variable_found:
 # ======================== CODE SEGMENT =======================
 	.text
 main:
-	li	$s1, 0			# index (top) of the stack
+	li	    $s1, 0			        # index (top) of the stack
 	
 	jal 	get_filename
 	
-	la	$a0, filename
+	la	    $a0, filename
 	jal 	read_file
 
-	la	$t0, program		# Set the cursor equal to the begginning 
-	sw	$t0, program_cursor	# of the program.
+	la	    $t0, program		    # Set the cursor equal to the begginning 
+	sw	    $t0, program_cursor	    # of the program.
 	
-	lw	$a0, program_cursor
-	jal	parse_program
+	lw	    $a0, program_cursor
+    jal	    parse_program
 	
 exit:	
-	li	$v0, 10			
+	li	    $v0, 10			
 	syscall
 	
 	
@@ -106,35 +105,35 @@ exit:
 #	t1 - temporary char buffer
 # ----------------------------------------------------------------
 get_filename:
-	sub	$sp, $sp, 4
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 4
+	sw	    $ra, 0($sp)
 	
-	la	$a0, prompt_filename
-	li	$v0, 4
+	la	    $a0, prompt_filename
+	li	    $v0, 4
 	syscall
 	
-	li	$v0, 8
-	la	$a0, filename
-	li	$a1, 100
+	li	    $v0, 8
+	la	    $a0, filename
+	li	    $a1, 100
 	syscall
 	
-gf_remove_newline:			# Remove the newline so that read_file
-	la	$t0, filename		# can open the file using filename.
+gf_remove_newline:			        # Remove the newline so that read_file
+	la	    $t0, filename		    # can open the file using filename.
 	
 gf_loop:
-	lbu	$t1, 0($t0)
-	beqz	$t1, gf_loop_exit	# End of filename string: exit
-	bne	$t1, 10, gf_skip		# If char == newline, replace it with 0
-	li	$t1, 0
+	lbu	    $t1, 0($t0)
+	beqz	$t1, gf_loop_exit	    # End of filename string: exit
+	bne	    $t1, 10, gf_skip        # If char == newline, replace it with 0
+	li	    $t1, 0
 gf_skip:
-	sb	$t1, 0($t0)
+	sb	    $t1, 0($t0)
 	addi	$t0, $t0, 1
-	b	gf_loop
+	b	    gf_loop
 	
 gf_loop_exit:
-	lw	$ra, 0($sp)
+	lw	    $ra, 0($sp)
 	addi	$sp, $sp, 4
-	jr	$ra
+	jr	    $ra
 	
 	
 # ____ PARSE _____________________________________________________
@@ -162,41 +161,41 @@ parse_program:
 	sw	$s2, 8($sp)
 
 pp_parse:
-	jal	read_next_token			
-	move	$s2, $v0			# Move new cursor to s2 so v0 is free.
-	move	$s0, $v1			# s0 <= EOF flag
+	jal	    read_next_token			
+	move	$s2, $v0			    # Move new cursor to s2 so v0 is free.
+	move	$s0, $v1			    # s0 <= EOF flag
 	
 	# If the token is a non-digit, hash it and connect it to its corresponding operation, else, skip the hash.
-	la	$a0, curr_token
-	jal	determine_if_digit
+	la	    $a0, curr_token
+	jal	    determine_if_digit
 	
-	beq	$v0, 1, pp_skip_hash
+	beq	    $v0, 1, pp_skip_hash
 	
-	la	$a0, curr_token
-	jal	hash_str
+	la	    $a0, curr_token
+	jal	    hash_str
 	
-	la	$a1, curr_token
-	move	$a0, $v0			# a0 - the hash of the token
-	jal	connect_keyword
-	b	pp_continue
+	la	    $a1, curr_token
+	move	$a0, $v0			    # a0 - the hash of the token
+	jal	    connect_keyword
+	b	    pp_continue
 	
 pp_skip_hash:
-	la	$a0, curr_token		# If the token was a number, parse it and
-	jal	parse_digit			# add it to the stack
+	la	    $a0, curr_token		    # If the token was a number, parse it and
+	jal	    parse_digit			    # add it to the stack
 	move	$a0, $v0
-	jal	stack_push			# Since the token was a digit, we don't have to 
-						# find what operation it corresponds to
+	jal	    stack_push			    # Since the token was a digit, we don't have to 
+						            # find what operation it corresponds to
 	
 pp_continue:
-	move	$a0, $s2			# Set a0 back to the new modified cursor. 
-						# The loop will reuse a0.
-	beq	$s0, 0, pp_parse		# if EOF is returned as 0 (false), parse again
+	move	$a0, $s2		    	# Set a0 back to the new modified cursor. 
+						            # The loop will reuse a0.
+	beq	    $s0, 0, pp_parse	    # if EOF is returned as 0 (false), parse again
 	
-	lw	$s2, 8($sp)
-	lw	$s0, 4($sp)
-	lw	$ra, 0($sp)
-	add	$sp, $sp, 8
-	jr	$ra
+	lw	    $s2, 8($sp)
+	lw	    $s0, 4($sp)
+	lw	    $ra, 0($sp)
+	add	    $sp, $sp, 8
+	jr	    $ra
 
 
 # ____ READ_FILE _________________________________________________
@@ -207,34 +206,33 @@ pp_continue:
 #	a0 - name of file to read (address)
 # ----------------------------------------------------------------
 read_file:
-	sub	$sp, $sp, 4
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 4
+	sw	    $ra, 0($sp)
 	
-	li	$a1, 0			# Open filename given in $a0
-	li	$a2, 0
-	li	$v0, 13
+	li	    $a1, 0			        # Open filename given in $a0
+	li	    $a2, 0
+	li	    $v0, 13
 	syscall
 	
-	move	$a0, $v0			# Read the file and place its
-	la	$a1, program		# contents into `program` memory
-	lw	$a2, program_length
-	li	$v0, 14
+	move	$a0, $v0			    # Read the file and place its
+	la	    $a1, program		    # contents into `program` memory
+	lw	    $a2, program_length
+	li	    $v0, 14
 	syscall
 	
-	bgez	$v0, rf_skip_error	# If error reading file, exit
-	la	$a0, error_msg_unable_to_read_file
-	li	$v0, 4
+	bgez	$v0, rf_skip_error	    # If error reading file, exit
+	la	    $a0, error_msg_unable_to_read_file
+	li	    $v0, 4
 	syscall
-	b	exit
+	b	    exit
 	
 rf_skip_error:
-	
-	li	$v0, 16			# Close the file
+	li	    $v0, 16			        # Close the file
 	syscall
 
-	lw	$ra, 0($sp)
-	add	$sp, $sp, 4
-	jr	$ra
+	lw	    $ra, 0($sp)
+	add	    $sp, $sp, 4
+	jr	    $ra
 	
 
 # ____ SET_CURR_TOKEN_INDEX_ZERO _________________________________
@@ -244,15 +242,15 @@ rf_skip_error:
 #	t0 - address of curr_token_index
 # ----------------------------------------------------------------
 sctiz:
-	sub	$sp, $sp, 4
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 4
+	sw	    $ra, 0($sp)
 	
-	la	$t0, curr_token_index	# Set curr_token_index to 0
-	sw	$zero, ($t0)
+	la	    $t0, curr_token_index	# Set curr_token_index to 0
+	sw	    $zero, ($t0)
 
-	lw	$ra, 0($sp)
+	lw	    $ra, 0($sp)
 	addi	$sp, $sp, 4
-	jr	$ra
+	jr	    $ra
 	
 
 # ____ INC_CURR_TOKEN_INDEX ______________________________________
@@ -265,29 +263,29 @@ sctiz:
 #	t2 - curr_token_len
 # ----------------------------------------------------------------
 icti:
-	sub	$sp, $sp, 4
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 4
+	sw	    $ra, 0($sp)
 	
-	la	$t0, curr_token_index	# increment curr_token_index
-	lw	$t1, ($t0)
+	la	    $t0, curr_token_index	# increment curr_token_index
+	lw	    $t1, ($t0)
 	addi	$t1, $t1, 1
 
 	# Index Out Of Range?
-	lw	$t2, curr_token_len	# check if curr_token_index >= curr_token_len
-	blt	$t1, $t2, icti_skip_error_index
-	la	$a0, error_msg_curr_token_index_out_of_range
-	li	$v0, 4
+	lw	    $t2, curr_token_len	    # check if curr_token_index >= curr_token_len
+	blt	    $t1, $t2, icti_skip_error_index
+	la	    $a0, error_msg_curr_token_index_out_of_range
+	li	    $v0, 4
 	syscall
 	
-	move	$a0, $t1			# Print curr_token_index
-	li	$v0, 1
+	move	$a0, $t1			    # Print curr_token_index
+	li	    $v0, 1
 	syscall
 	
-	li	$a0, '\n'			
-	li	$v0, 11
+	li	    $a0, '\n'			
+	li	    $v0, 11
 	syscall
 	
-	b	exit
+	b	    exit
 	
 icti_skip_error_index:
 	sw	$t1, ($t0)
@@ -308,27 +306,31 @@ icti_skip_error_index:
 #	s1 - curr_token_index
 # ----------------------------------------------------------------
 append_curr_token:
-	sub	$sp, $sp, 12
-	sw	$ra, 0($sp)
-	sw	$s0, 4($sp)
-	sw	$s1, 8($sp)
+	sub	    $sp, $sp, 12
+	sw	    $ra, 0($sp)
+	sw	    $s0, 4($sp)
+	sw	    $s1, 8($sp)
 	
-	la	$s0, curr_token		# increment $s0 (address of curr_token) to the position 
-	lw	$s1, curr_token_index	# in which to add the character
-	add	$s0, $s0, $s1		
+	la	    $s0, curr_token		    # s0 is the address of curr_token
+	lw	    $s1, curr_token_index	# the offset of the position to s0
+	add	    $s0, $s0, $s1		
 	
-	sb	$a0, ($s0)			# store the character at that position
-	jal	icti				
+	sb	    $a0, ($s0)			    # store the character at that position
+	jal	    icti				
 
-	lw	$s1, 8($sp)
-	lw	$s0, 4($sp)
-	lw	$ra, 0($sp)
+	lw	    $s1, 8($sp)
+	lw	    $s0, 4($sp)
+	lw	    $ra, 0($sp)
 	addi	$sp, $sp, 12
-	jr	$ra
+	jr	    $ra
 
 
 # ____ ERASE_CURR_TOKEN _________________________________________
 # Set all of the characters in curr_token to 0 (null)
+#
+#               ==== WARNING ====
+# Will write over memory if curr_token_length is greater 
+# than the actual length of curr_token.
 #
 # Registers:
 #	s0 - the address of the current token
@@ -336,29 +338,29 @@ append_curr_token:
 #	t0 - the index of the loop [0, s1)
 # ----------------------------------------------------------------
 erase_curr_token:
-	sub	$sp, $sp, 12
-	sw	$s0, 8($sp)
-	sw	$s1, 4($sp)
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 12
+	sw	    $s0, 8($sp)
+	sw	    $s1, 4($sp)
+	sw	    $ra, 0($sp)
 
-	la	$s0, curr_token
-	lw	$s1, curr_token_len
-	li	$t0, 0			# Index
+	la	    $s0, curr_token
+	lw	    $s1, curr_token_len
+	li	    $t0, 0			        # Index
 	
 ect_erase:
-	sb	$zero, ($s0)		# Set the current character at the cursor to 0
+	sb	    $zero, ($s0)		    # Set the current character at the cursor to 0
 	addi	$s0, $s0, 1
 	
 	addi	$t0, $t0, 1			
-	blt	$t0, $s1, ect_erase 		
+	blt	    $t0, $s1, ect_erase 		
 	
-	jal	sctiz
+	jal	    sctiz
 
-	lw	$ra, 0($sp)
-	lw	$s1, 4($sp)
-	lw	$s0, 8($sp)
+	lw	    $ra, 0($sp)
+	lw	    $s1, 4($sp)
+	lw	    $s0, 8($sp)
 	addi	$sp, $sp, 12
-	jr	$ra
+	jr	    $ra
 
 
 # ____ READ_NEXT_TOKEN ___________________________________________
@@ -381,18 +383,18 @@ ect_erase:
 #	s2 - temporary char buffer
 # ----------------------------------------------------------------
 read_next_token:
-	sub	$sp, $sp, 12
-	sw	$s2, 8($sp)
-	sw	$s0, 4($sp)
-	sw	$ra, 0($sp)
+	sub	    $sp, $sp, 12
+	sw	    $s2, 8($sp)
+	sw	    $s0, 4($sp)
+	sw	    $ra, 0($sp)
 	
-	li	$v1, 0			# Assume Cursor has not reached EOF
-	jal	erase_curr_token
+	li	    $v1, 0			        # Assume Cursor has not reached EOF
+	jal	    erase_curr_token
 	move	$s0, $a0
 	
 	# If the char read isn't a space, nullchar, or newline, append it to curr_token
 rnt_read_char:
-	lbu	$s2, ($s0)			# Read a char
+	lbu	$s2, ($s0)			    # Read a char
 	beq	$s2, 32, rnt_char_space	# Char read is the space char
 	beq	$s2, 0,  rnt_char_null	# Char read is the null char
 	beq	$s2, 10, rnt_char_newline # Char read is a newline character
@@ -404,15 +406,15 @@ rnt_read_char:
 	b	rnt_read_char
 	
 rnt_char_null:
-	li	$v1, 1			# Have reached the end of the memory to read from
-	b	rnt_exit		# set EOF flag (EOF has been reached)
+	li	$v1, 1			        # Have reached the end of the memory to read from
+	b	rnt_exit		        # set EOF flag (EOF has been reached)
 	
 rnt_char_newline:
 rnt_char_space:
 	addi	$s0, $s0, 1			
 	
-rnt_remove_spaces:			# if the chars ahead of cursor are chars, increment cursor
-	lbu	$s2, ($s0)		# (essentially removing them)
+rnt_remove_spaces:			    # if the chars ahead of cursor are chars, increment cursor
+	lbu	$s2, ($s0)		        # (essentially removing them)
 	beq	$s2, 32, rnt_char_space	
 	beq	$s2, 10, rnt_char_newline
 	beq	$s2, 0,  rnt_char_null
@@ -439,8 +441,8 @@ stack_push:
 	sw	$ra, 0($sp)
 	
 	la	$t0, stack	
-	add	$t0, $t0, $s1		# t0 - the current real address of $s1 * 4
-	sw	$a0, 0($t0)		# Store the item upon the stack
+	add	$t0, $t0, $s1		    # t0 - the current real address of $s1 * 4
+	sw	$a0, 0($t0)		        # Store the item upon the stack
 	
 	li	$a0, 1
 	jal 	stack_inc_ptr
@@ -469,7 +471,7 @@ stack_pop:
 
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 1		# The stack has at least 1 item
+	slti	$s0, $v0, 1		    # The stack has at least 1 item
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -479,8 +481,8 @@ stack_pop:
 	li	$a0, 1
 	jal	stack_dec_ptr
 	
-	add	$s0, $s0, $s1		# t0 - the current real address of $s1
-	lw	$v0, 0($s0)		# Load the topmost item
+	add	$s0, $s0, $s1		    # t0 - the current real address of $s1
+	lw	$v0, 0($s0)		        # Load the topmost item
 	
 	lw	$ra, 0($sp)
 	lw	$s0, 4($sp)
@@ -502,7 +504,7 @@ stack_inc_ptr:
 	sub	$sp, $sp, 4		
 	sw	$ra, 0($sp)
 	
-	sll	$a0, $a0, 2		# increment the stack by ($a0 * 4)
+	sll	$a0, $a0, 2		        # increment the stack by ($a0 * 4)
 	add	$s1, $s1, $a0
 	
 	lw	$ra, 0($sp)
@@ -524,7 +526,7 @@ stack_dec_ptr:
 	sub	$sp, $sp, 4
 	sw	$ra, 0($sp)
 	
-	sll	$a0, $a0, 2		# decrement the stack by ($a0 * 4)
+	sll	$a0, $a0, 2		        # decrement the stack by ($a0 * 4)
 	sub	$s1, $s1, $a0
 	
 	lw	$ra, 0($sp)
@@ -568,7 +570,7 @@ stack_add:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 2		# The stack has at least 2 items
+	slti	$s0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -608,7 +610,7 @@ stack_subtract:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 2		# The stack has at least 2 items
+	slti	$s0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -619,7 +621,7 @@ stack_subtract:
 	jal	stack_pop
 	move	$s3, $v0
 	
-	sub	$a0, $s3, $s2		# sub <op1> <op2> = op1 - op2
+	sub	$a0, $s3, $s2		    # sub <op1> <op2> = op1 - op2
 	jal	stack_push
 
 	lw	$s3, 12($sp)
@@ -649,26 +651,26 @@ stack_multiply:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 2		# The stack has at least 2 items
+	slti	$s0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
 	
-	jal	stack_pop
+	jal	    stack_pop
 	move	$s2, $v0
 	
-	jal	stack_pop
+	jal	    stack_pop
 	move	$s3, $v0
 	
-	mul	$a0, $s2, $s3
-	jal	stack_push
+	mul	    $a0, $s2, $s3
+	jal	    stack_push
 
-	lw	$s3, 12($sp)
-	lw	$s2, 8($sp)
-	lw	$s0, 4($sp)
-	lw	$ra, 0($sp)
-	add	$sp, $sp, 16
-	jr	$ra
+	lw	    $s3, 12($sp)
+	lw	    $s2, 8($sp)
+	lw	    $s0, 4($sp)
+	lw	    $ra, 0($sp)
+	add	    $sp, $sp, 16
+	jr	    $ra
 	
 	
 # ____ STACK_DIVIDE ___________________________________________
@@ -689,7 +691,7 @@ stack_divide:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 2		# The stack has at least 2 items
+	slti	$s0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -725,7 +727,7 @@ stack_duplicate:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 1		# The stack has at least 2 items
+	slti	$s0, $v0, 1		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -736,7 +738,7 @@ stack_duplicate:
 	add	$a0, $s2, $zero		
 	jal	stack_push
 	
-	add	$a0, $s2, $zero		# Duplication 
+	add	$a0, $s2, $zero		    # Duplication 
 	jal	stack_push
 	
 	lw	$s2, 8($sp)
@@ -760,7 +762,7 @@ stack_print:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 1		# The stack has at least 2 items
+	slti	$s0, $v0, 1		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -772,7 +774,7 @@ stack_print:
 	li	$v0, 1
 	syscall
 	
-	li	$a0, '\n'		# print newline
+	li	$a0, '\n'		        # print newline
 	li	$v0, 11
 	syscall
 	
@@ -799,7 +801,7 @@ stack_swap:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 2		# The stack has at least 2 items
+	slti	$s0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -842,7 +844,7 @@ stack_rotate:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$s0, $v0, 3		# The stack has at least 2 items
+	slti	$s0, $v0, 3		    # The stack has at least 2 items
 	
 	bnez	$s0, error_stack_not_enough_operands
 	# =======================================================
@@ -888,7 +890,7 @@ stack_drop:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 1		# The stack has at least 2 items
+	slti	$t0, $v0, 1		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -924,7 +926,7 @@ stack_and:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -966,7 +968,7 @@ stack_or:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1006,7 +1008,7 @@ stack_xor:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1047,7 +1049,7 @@ stack_invert:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 1		# The stack has at least 2 items
+	slti	$t0, $v0, 1		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1091,7 +1093,7 @@ stack_greater:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1133,7 +1135,7 @@ stack_lesser:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1175,7 +1177,7 @@ stack_equal:
 	
 	# ==== NOT ENOUGH OPERANDS CHECK ========================
 	jal	stack_len
-	slti	$t0, $v0, 2		# The stack has at least 2 items
+	slti	$t0, $v0, 2		    # The stack has at least 2 items
 	
 	bnez	$t0, error_stack_not_enough_operands
 	# =======================================================
@@ -1265,7 +1267,7 @@ hash_exit:
 determine_if_alpha:
 	sub	$sp, $sp, 4
 	sw	$ra, 0($sp)
-	li	$v0, 1			# it is assumed that it is alpha
+	li	$v0, 1			        # it is assumed that it is alpha
 
 dia_read_str:
 	lb	$t0, 0($a0)
@@ -1302,15 +1304,15 @@ determine_if_digit:
 	sub	$sp, $sp, 4
 	sw	$ra, 0($sp)
 	
-	li	$v0, 1			# it is assumed that it is a digit str
+	li	$v0, 1			        # it is assumed that it is a digit str
 
 did_read_str:
 	lb	$t0, 0($a0)
 	addi	$a0, $a0, 1
 	beqz	$t0, did_exit
 
-	# $t0 > 47 && $t0 < 58
-	sgt	$t1, $t0, 47		# determine if the char is a digit
+	                            # $t0 > 47 && $t0 < 58  
+	sgt	$t1, $t0, 47		    # determine if the char is a digit
 	slti	$t2, $t0, 58
 	and	$t1, $t1, $t2
 	bnez	$t1, did_read_str
@@ -1389,11 +1391,11 @@ variable_create:
 	lw	$t1, variable_index
 	add	$t0, $t0, $t1
 
-	sw	$a0, 0($t0)		# Store $a0 at the i(th) index of the var space
+	sw	$a0, 0($t0)		        # Store $a0 at the i(th) index of the var space
 	
 	addi	$t0, $t0, 4 
 
-	sw	$a1, 0($t0)		# Store $a1 at the i+4(th) index of the var space
+	sw	$a1, 0($t0)		        # Store $a1 at the i+4(th) index of the var space
 	
 	addi	$t1, $t1, 8
 	sw	$t1, variable_index
@@ -1420,7 +1422,7 @@ variable_get:
 vg_loop:
 	sub	$t1, $t1, 8
 	
-	blt	$t1, $t0, no_variable		# has looked through the entire space, no variable found
+	blt	$t1, $t0, no_variable	# has looked through the entire space, no variable found
 	
 	lw	$t2, 0($t1)
 	beq	$a0, $t2, vg_loop_exit
@@ -1435,7 +1437,7 @@ no_variable:
 
 vg_loop_exit:
 	addi	$t1, $t1, 4
-	lw	$v0, 0($t1)			# Get the value at the index that was found!
+	lw	$v0, 0($t1)			    # Get the value at the index that was found!
 	
 	lw	$ra, 0($sp)
 	addi	$sp, $sp, 4
@@ -1563,7 +1565,7 @@ ck_comment_loop:
 ck_skip_comment_flag:
 
 	# IF
-	bne	$a0, 309, ck_skip_if		# hashcode("if") = 309
+	bne	$a0, 309, ck_skip_if	        # hashcode("if") = 309
 	jal	stack_pop
 	xor	$v0, $v0, 1
 	sw	$v0, keyword_disregard
@@ -1571,7 +1573,7 @@ ck_skip_comment_flag:
 ck_skip_if:
 
 	# THEN
-	bne	$a0, 1608, ck_skip_then		# hashcode("then") = 1608
+	bne	$a0, 1608, ck_skip_then		    # hashcode("then") = 1608
 	b	ck_exit
 ck_skip_then:
 
@@ -1583,7 +1585,7 @@ ck_skip_then:
 ck_skip_print_string:
 
 	# VARIABLE CREATE
-	bne	$a0, 61, ck_skip_var_create	# hashcode("=") = 61
+	bne	$a0, 61, ck_skip_var_create	    # hashcode("=") = 61
 	li	$t0, 1
 	sw	$t0, keyword_variable_set
 	
@@ -1599,7 +1601,7 @@ ck_skip_var_create:
 ck_skip_var_get:
 
 	# NEW-LINE
-	bne	$a0, 326, ck_skip_newline	# hashcode("nk") = 326
+	bne	$a0, 326, ck_skip_newline	    # hashcode("nk") = 326
 
 	li	$a0, 10
 	li	$v0, 11
@@ -1619,7 +1621,7 @@ ck_skip_newline:
 ck_skip_ask_number:
 
 	# DUPLICATE
-	bne	$a0, 782, ck_skip_dup 		# hashcode("dup") = 782
+	bne	$a0, 782, ck_skip_dup 		    # hashcode("dup") = 782
 	jal	stack_duplicate
 	b	ck_exit
 ck_skip_dup:
@@ -1645,25 +1647,25 @@ ck_skip_comment_end:
 ck_skip_swap:
 
 	# ADDITION
-	bne	$a0, 43, ck_skip_add		# hashcode("+") = 43
+	bne	$a0, 43, ck_skip_add		    # hashcode("+") = 43
 	jal	stack_add
 	b	ck_exit
 ck_skip_add:
 
 	# SUBTRACT
-	bne	$a0, 45, ck_skip_subtract	# hashcode("-") = 45
+	bne	$a0, 45, ck_skip_subtract	    # hashcode("-") = 45
 	jal	stack_subtract
 	b	ck_exit
 ck_skip_subtract:
 
 	# MULTIPLY
-	bne	$a0, 42, ck_skip_multiply	# hashcode("*") = 42
+	bne	$a0, 42, ck_skip_multiply	    # hashcode("*") = 42
 	jal	stack_multiply
 	b	ck_exit
 ck_skip_multiply:
 
 	# DIVIDE
-	bne	$a0, 47, ck_skip_divide		# hashcode("/") = 47
+	bne	$a0, 47, ck_skip_divide		    # hashcode("/") = 47
 	jal	stack_divide
 	b	ck_exit
 ck_skip_divide:
@@ -1675,44 +1677,44 @@ ck_skip_divide:
 ck_skip_greater:
 	
 	# LESS-THAN
-	bne	$a0, 60, ck_skip_lesser		# hashcode("<") = 60
+	bne	$a0, 60, ck_skip_lesser		    # hashcode("<") = 60
 	jal	stack_lesser
 	b	ck_exit
 ck_skip_lesser:
 
 	# AND
-	bne	$a0, 38, ck_skip_and		# hashcode("&") = 38
+	bne	$a0, 38, ck_skip_and		    # hashcode("&") = 38
 	jal	stack_and
 	b	ck_exit
 ck_skip_and:
 	
 	# OR
-	bne	$a0, 124, ck_skip_or		# hashcode("|") = 128
+	bne	$a0, 124, ck_skip_or		    # hashcode("|") = 128
 	jal	stack_or
 	b	ck_exit
 ck_skip_or:
 	
 	# XOR
-	bne	$a0, 94, ck_skip_xor		# hashcode("^") = 94
+	bne	$a0, 94, ck_skip_xor		    # hashcode("^") = 94
 	jal	stack_xor
 	b	ck_exit
 ck_skip_xor:
 	
 	# INVERT
-	bne	$a0, 33, ck_skip_invert		# hashcode("!") = 33
+	bne	$a0, 33, ck_skip_invert		    # hashcode("!") = 33
 	jal	stack_invert
 	b	ck_exit
 ck_skip_invert:
 	
 	
 	# EQUAL
-	bne	$a0, 183, ck_skip_equal		# hashcode("==") = 183
+	bne	$a0, 183, ck_skip_equal		    # hashcode("==") = 183
 	jal	stack_equal
 	b	ck_exit
 ck_skip_equal:
 
 	# PRINT
-	bne	$a0, 46, ck_skip_print		# hashcode(".") = 46
+	bne	$a0, 46, ck_skip_print		    # hashcode(".") = 46
 	jal	stack_print
 	b	ck_exit
 ck_skip_print:
@@ -1724,7 +1726,7 @@ ck_skip_print:
 ck_skip_rotate:
 
 	# DROP
-	bne	$a0, 1668, ck_skip_drop		# hashcode("drop") = 1668
+	bne	$a0, 1668, ck_skip_drop		    # hashcode("drop") = 1668
 	jal	stack_drop
 	b	ck_exit
 ck_skip_drop:
@@ -1736,11 +1738,11 @@ ck_skip_drop:
 	li	$v0, 4
 	syscall
 	
-	move	$a0, $a1				# print the unknown word
+	move	$a0, $a1		        # print the unknown word
 	li	$v0, 4
 	syscall
 	
-	j	exit				# exit the program (not the procedure)
+	j	exit				        # exit the program (not the procedure)
 
 ck_exit:
 	lw	$ra, 0($sp)
